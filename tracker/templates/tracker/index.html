@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Expense</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: #007BFF;
+            color: white;
+        }
+
+        .cancel-btn {
+            font-size: 1.2rem;
+            color: white;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .payment-icon {
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
+
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .category-box {
+            flex-basis: calc(50% - 10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
+        }
+
+        .category-box:hover {
+            transform: scale(1.05);
+            background-color: #0056b3;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 2px solid #007BFF;
+        }
+
+        .footer-item {
+            font-size: 1.2rem;
+            color: #007BFF;
+            cursor: pointer;
+            text-align: center;
+            width: 100%;
+        }
+
+        .footer-item:hover {
+            color: #0056b3;
+        }
+
+        .calculator {
+            display: none;
+            position: fixed;
+            bottom: 0;
+        left: 0;
+        right: 0;
+            width: 95%;
+            background-color: white;
+            padding: 20px;
+            border-top: 2px solid #007BFF;
+        }
+
+        .calc-display {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.5rem;
+            border: 2px solid #007BFF;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: right;
+        }
+
+        .calc-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .calc-btn {
+            padding: 15px;
+            font-size: 1.2rem;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .calc-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .add-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            width: 100%;
+        }
+
+        .add-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top bar with Cancel and Payment icon -->
+    <div class="top-bar">
+        <button class="cancel-btn" onclick="window.history.back()">Cancel</button>
+        <img src="https://img.icons8.com/ios-filled/50/money.png" alt="Payment" class="payment-icon" onclick="window.location.href='{% url 'payment' %}'">
+    </div>
+
+    <!-- Content with expense categories -->
+    <div class="content">
+        <div class="category-box" onclick="openCalculator('Shopping')">Shopping</div>
+        <div class="category-box" onclick="openCalculator('Makeup')">Makeup</div>
+        <div class="category-box" onclick="openCalculator('Food')">Food</div>
+        <div class="category-box" onclick="openCalculator('Entertainment')">Entertainment</div>
+        <div class="category-box" onclick="openCalculator('Transportation')">Transportation</div>
+        <div class="category-box" onclick="openCalculator('Rent')">Rent</div>
+    </div>
+
+    <!-- Calculator section -->
+    <div class="calculator" id="calculator">
+        <h3 id="category-title"></h3>
+        <input type="text" id="calc-display" class="calc-display" readonly>
+        <div class="calc-buttons">
+            <button class="calc-btn" onclick="appendToDisplay('7')">7</button>
+            <button class="calc-btn" onclick="appendToDisplay('8')">8</button>
+            <button class="calc-btn" onclick="appendToDisplay('9')">9</button>
+            <button class="calc-btn" onclick="setOperator('/')">/</button>
+
+            <button class="calc-btn" onclick="appendToDisplay('4')">4</button>
+            <button class="calc-btn" onclick="appendToDisplay('5')">5</button>
+            <button class="calc-btn" onclick="appendToDisplay('6')">6</button>
+            <button class="calc-btn" onclick="setOperator('*')">*</button>
+
+            <button class="calc-btn" onclick="appendToDisplay('1')">1</button>
+            <button class="calc-btn" onclick="appendToDisplay('2')">2</button>
+            <button class="calc-btn" onclick="appendToDisplay('3')">3</button>
+            <button class="calc-btn" onclick="setOperator('-')">-</button>
+
+            <button class="calc-btn" onclick="appendToDisplay('0')">0</button>
+            <button class="calc-btn" onclick="appendToDisplay('.')">.</button>
+            <button class="calc-btn" onclick="calculate()">=</button>
+            <button class="calc-btn" onclick="setOperator('+')">+</button>
+        </div>
+        <form id="expense-form" action="{% url 'records' %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="category" id="expense-category">
+            <input type="hidden" name="amount" id="expense-amount">
+            <button type="submit" class="add-btn" onclick="setExpenseData()">Submit</button>
+        </form>
+    </div>
+
+    <!-- Footer navigation -->
+    <div class="footer">
+        <div class="footer-item" onclick="window.location.href='{% url 'records' %}'">Records</div>
+        <div class="footer-item" onclick="window.location.href='{% url 'notes' %}'">Charts</div>
+        <div class="footer-item plus-icon" onclick="window.location.href='{% url 'add-new' %}'">+</div>
+        <div class="footer-item" onclick="window.location.href='{% url 'reports' %}'">Reports</div>
+        <div class="footer-item" onclick="window.location.href='{% url 'profile' %}'">Me</div>
+    </div>
+
+    <script>
+        let display = '';
+        let operator = '';
+        let firstValue = '';
+        let secondValue = '';
+        let selectedCategory = '';
+
+        // Open calculator and set category title
+        function openCalculator(category) {
+            document.getElementById('category-title').innerText = `Add ${category} Expense`;
+            document.getElementById('calculator').style.display = 'block';
+            selectedCategory = category;
+            display = ''; // Clear display
+            document.getElementById('calc-display').value = display;
+            document.getElementById('expense-category').value = selectedCategory; // Set selected category
+        }
+
+        // Append numbers to the display
+        function appendToDisplay(value) {
+            display += value;
+            document.getElementById('calc-display').value = display;
+        }
+
+        // Set operator for calculation
+        function setOperator(op) {
+            operator = op;
+            firstValue = display;
+            display = '';
+        }
+
+        // Perform calculation
+        function calculate() {
+            secondValue = display;
+            let result = 0;
+
+            if (operator === '+') result = parseFloat(firstValue) + parseFloat(secondValue);
+            else if (operator === '-') result = parseFloat(firstValue) - parseFloat(secondValue);
+            else if (operator === '*') result = parseFloat(firstValue) * parseFloat(secondValue);
+            else if (operator === '/') result = parseFloat(firstValue) / parseFloat(secondValue);
+
+            display = result.toString();
+            document.getElementById('calc-display').value = display;
+            document.getElementById('expense-amount').value = display; // Set the calculated amount
+        }
+
+        // Set the expense data before submitting
+        function setExpenseData() {
+            // The amount is already set in the calculate function
+            // The category is also set when the calculator is opened
+        }
+    </script>
+</body>
+</html>
+

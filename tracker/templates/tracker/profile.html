@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script> <!-- For icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            color: #007BFF;
+            text-align: center;
+        }
+
+        .sign-in-section, .rate-section, .recommend-section {
+            margin: 20px auto;
+            max-width: 400px;
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sign-in-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 18px;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .google { background-color: #DB4437; }
+        .facebook { background-color: #3B5998; }
+        .twitter { background-color: #1DA1F2; }
+
+        .sign-in-btn i { margin-right: 10px; }
+
+        .stars i {
+            font-size: 30px;
+            color: #ccc;
+            cursor: pointer;
+        }
+
+        .stars i.selected {
+            color: #FFD700;
+        }
+
+        .submit-rating {
+            display: block;
+            margin: 20px auto;
+            background-color: #28A745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .submit-rating:hover {
+            background-color: #218838;
+        }
+
+        .share-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 18px;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .share-btn i { margin-right: 10px; }
+
+        .share-btn:nth-child(1) { background-color: #25D366; }
+        .share-btn:nth-child(2) { background-color: #C13584; }
+        .share-btn:nth-child(3) { background-color: #007BFF; }
+    </style>
+</head>
+<body>
+
+    <!-- Sign In Section -->
+    <div class="sign-in-section">
+        <h2>Sign In Options</h2>
+        <button class="sign-in-btn google" onclick="signInWith('Google')"><i class="fab fa-google"></i> Sign in with Google</button>
+        <button class="sign-in-btn facebook" onclick="signInWith('Facebook')"><i class="fab fa-facebook-f"></i> Sign in with Facebook</button>
+        <button class="sign-in-btn twitter" onclick="signInWith('Twitter')"><i class="fab fa-twitter"></i> Sign in with Twitter</button>
+    </div>
+
+    <!-- Rate the Website Section -->
+    <div class="rate-section">
+        <h2>Rate the Website</h2>
+        <div class="stars" id="star-rating">
+            <i class="fas fa-star" data-rating="1"></i>
+            <i class="fas fa-star" data-rating="2"></i>
+            <i class="fas fa-star" data-rating="3"></i>
+            <i class="fas fa-star" data-rating="4"></i>
+            <i class="fas fa-star" data-rating="5"></i>
+        </div>
+        <button class="submit-rating" onclick="submitRating()">Submit Rating</button>
+    </div>
+
+    <!-- Recommend to Friends Section -->
+    <div class="recommend-section">
+        <h2>Recommend to Friends</h2>
+        <button class="share-btn" onclick="share('whatsapp')"><i class="fab fa-whatsapp"></i> Share on WhatsApp</button>
+        <button class="share-btn" onclick="share('instagram')"><i class="fab fa-instagram"></i> Share on Instagram</button>
+        <button class="share-btn" onclick="share('mail')"><i class="fas fa-envelope"></i> Share via Email</button>
+    </div>
+
+    <script>
+        let selectedRating = 0;
+
+        // Handle star click event
+        document.querySelectorAll('.stars i').forEach(star => {
+            star.addEventListener('click', function() {
+                selectedRating = this.getAttribute('data-rating'); // Get the rating value
+                highlightStars(selectedRating);
+            });
+        });
+
+        // Highlight stars based on the selected rating
+        function highlightStars(rating) {
+            document.querySelectorAll('.stars i').forEach(star => {
+                if (star.getAttribute('data-rating') <= rating) {
+                    star.classList.add('selected');
+                } else {
+                    star.classList.remove('selected');
+                }
+            });
+        }
+
+        // Handle rating submission
+        function submitRating() {
+            if (selectedRating == 0) {
+                alert("Please select a rating before submitting.");
+            } else {
+                alert("You rated " + selectedRating + " stars!");
+
+                // Simulating saving rating to the server (AJAX can be used here)
+                fetch("{% url 'submit_rating' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                    body: JSON.stringify({ rating: selectedRating }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                });
+            }
+        }
+
+        // Function to handle sign-in (just a mockup)
+        function signInWith(platform) {
+            alert('Sign in with ' + platform);
+        }
+
+        // Function to share on different platforms
+        function share(platform) {
+            let url = '';
+            switch (platform) {
+                case 'whatsapp':
+                    url = 'https://wa.me/?text=Check out this awesome website!';
+                    break;
+                case 'instagram':
+                    url = 'https://www.instagram.com/';
+                    break;
+                case 'mail':
+                    url = 'mailto:?subject=Check out this website&body=Check out this awesome website!';
+                    break;
+            }
+            window.open(url, '_blank');
+        }
+    </script>
+
+</body>
+</html>

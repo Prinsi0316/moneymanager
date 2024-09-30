@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Notes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0f7fa; /* Light blue background */
+            color: #333;
+            margin: 0; /* Remove default margin */
+            padding: 0; /* Remove default padding */
+            height: 100vh; /* Full height of the viewport */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .note-container {
+            width: 100%; /* Make it full width */
+            max-width: 600px; /* Keep the max width for larger screens */
+            background-color: #fff; /* White background for notes container */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center; /* Center the heading */
+            margin-bottom: 20px; /* Space below the heading */
+        }
+
+        .note {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .note:hover {
+            background-color: #f1f1f1; /* Light gray on hover */
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .note-input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .submit-note {
+            background-color: #28A745; /* Green background for submit button */
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100%; /* Full width for the button */
+        }
+
+        .submit-note:hover {
+            background-color: #218838; /* Darker green on hover */
+        }
+    </style>
+</head>
+<body>
+
+<div class="note-container">
+    <h2>My Notes</h2>
+
+    <div id="notesList">
+        {% for note in notes %}
+            <div class="note" id="note-{{ note.id }}">
+                <div class="note-header" ondblclick="renameNote({{ note.id }})">
+                    <span class="note-name">{{ note.name }}</span>
+                    <span class="delete-note" onclick="deleteNote({{ note.id }})">&times;</span>
+                </div>
+                <p>{{ note.content }}</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <input type="text" id="noteName" placeholder="Note Name" class="note-input">
+    <textarea id="noteContent" placeholder="Enter your note here..." class="note-input"></textarea>
+    <button class="submit-note" onclick="submitNote()">Submit Note</button>
+</div>
+
+<script>
+    function submitNote() {
+        const noteName = document.getElementById('noteName').value || 'Note';
+        const noteContent = document.getElementById('noteContent').value;
+
+        fetch("{% url 'notes' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: `note_name=${noteName}&note_content=${noteContent}`,
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);  // Alert the user
+            location.reload();  // Reload the page to see the new note
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    function renameNote(noteId) {
+        const note = document.getElementById('note-' + noteId);
+        const noteName = note.querySelector('.note-name');
+
+        const newName = prompt('Enter new name for the note:', noteName.textContent);
+        if (newName) {
+            noteName.textContent = newName;
+
+            // Here you should implement AJAX to save the new name to the backend
+            fetch(`{% url 'rename_note' %}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: `note_id=${noteId}&note_name=${newName}`,
+            });
+        }
+    }
+
+    function deleteNote(noteId) {
+        fetch(`{% url 'delete_note' %}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: `note_id=${noteId}`,
+        })
+        .then(response => {
+            location.reload(); // Reload the page to see changes
+        });
+    }
+</script>
+
+</body>
+</html>
+
